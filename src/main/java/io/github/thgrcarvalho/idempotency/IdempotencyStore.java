@@ -13,8 +13,8 @@ import java.util.Optional;
  *
  * <pre>{@code
  * @Bean
- * IdempotencyStore redisIdempotencyStore(RedisTemplate<String, CachedResponse> redis) {
- *     return new RedisIdempotencyStore(redis);
+ * IdempotencyStore idempotencyStore(RedisConnectionFactory connectionFactory) {
+ *     return new RedisIdempotencyStore(connectionFactory);
  * }
  * }</pre>
  */

@@ -49,20 +49,32 @@ Responses with status `5xx` are never cached — server errors are assumed trans
 | `24h` | 24 hours (default) |
 | `7d`  | 7 days |
 
-## Custom storage backend
+## Storage backends
 
-The default store is in-memory (`ConcurrentHashMap`) — suitable for single-instance deployments. For multi-instance environments, provide your own `IdempotencyStore` bean and the autoconfiguration backs off automatically:
+Two implementations ship with the starter:
+
+### In-memory (default)
+
+A `ConcurrentHashMap` — zero configuration, suitable for single-instance deployments. Uses `putIfAbsent` (first writer wins) to minimise duplicate executions under concurrent retries, but does not eliminate them entirely across multiple JVMs.
+
+### Redis (multi-instance)
+
+A production-ready backend for horizontally-scaled deployments. Uses the Redis `SET key value NX EX seconds` primitive — a single atomic command that gives **exactly-once semantics cluster-wide**: only the first request ever writes, every concurrent retry falls back to the cached response.
+
+Add Spring Data Redis to your app and wire up the store:
 
 ```java
 @Bean
-IdempotencyStore redisIdempotencyStore(RedisTemplate<String, CachedResponse> redis) {
-    return new RedisIdempotencyStore(redis);
+IdempotencyStore idempotencyStore(RedisConnectionFactory connectionFactory) {
+    return new RedisIdempotencyStore(connectionFactory);
 }
 ```
 
-## Concurrency note
+The autoconfiguration backs off automatically — once you declare a bean of type `IdempotencyStore`, the in-memory fallback is not instantiated.
 
-The in-memory store uses `putIfAbsent` (first writer wins), which minimises duplicate executions under concurrent retries but does not eliminate them entirely. For strict exactly-once guarantees, use a custom store backed by a database unique constraint or Redis `SET NX`.
+### Custom backends
+
+Implement `IdempotencyStore` yourself (for example, backed by a database unique constraint) and register it as a bean — same back-off behaviour applies.
 
 ## Running tests
 
@@ -70,8 +82,8 @@ The in-memory store uses `putIfAbsent` (first writer wins), which minimises dupl
 ./gradlew test
 ```
 
-Integration tests spin up a real Spring Boot application and verify caching behaviour end-to-end, including the non-`@Idempotent` pass-through case.
+Integration tests spin up a real Spring Boot application and verify caching behaviour end-to-end. The Redis store tests use Testcontainers to run against a real Redis instance — Docker must be available for those to execute.
 
 ## Tech
 
-Java 21 · Spring Boot 3 (autoconfigure, web) · Gradle · JUnit 5
+Java 21 · Spring Boot 3 (autoconfigure, web, data-redis) · Testcontainers · Gradle · JUnit 5
