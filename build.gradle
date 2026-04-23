@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
+    id 'jacoco'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'com.gradleup.nmcp' version '1.4.4'
 }
@@ -43,7 +44,18 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
-    environment 'DOCKER_HOST', System.getenv('DOCKER_HOST') ?: 'tcp://localhost:2375'
+    // Pass DOCKER_HOST through when set (e.g. WSL with tcp://localhost:2375).
+    // On Linux CI the socket is auto-detected by Testcontainers.
+    def dockerHost = System.getenv('DOCKER_HOST')
+    if (dockerHost) environment 'DOCKER_HOST', dockerHost
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+    }
 }
 
 javadoc {

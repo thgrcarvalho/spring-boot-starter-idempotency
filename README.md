@@ -1,6 +1,8 @@
 # spring-boot-starter-idempotency
 
+[![CI](https://github.com/thgrcarvalho/spring-boot-starter-idempotency/actions/workflows/ci.yml/badge.svg)](https://github.com/thgrcarvalho/spring-boot-starter-idempotency/actions/workflows/ci.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.thgrcarvalho/spring-boot-starter-idempotency)](https://central.sonatype.com/artifact/io.github.thgrcarvalho/spring-boot-starter-idempotency)
+[![codecov](https://codecov.io/gh/thgrcarvalho/spring-boot-starter-idempotency/branch/main/graph/badge.svg)](https://codecov.io/gh/thgrcarvalho/spring-boot-starter-idempotency)
 
 A Spring Boot starter that adds idempotency to any controller method with a single annotation. Requests carrying the same `Idempotency-Key` header return the cached response without re-executing the handler.
 
