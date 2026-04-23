@@ -18,13 +18,21 @@ Non-idempotent payment endpoints are one of the most common sources of duplicate
 
 ## Installation
 
+**Gradle:**
 ```groovy
 dependencies {
     implementation 'io.github.thgrcarvalho:spring-boot-starter-idempotency:0.1.0'
 }
 ```
 
-> Maven Central publishing is coming. Until then, clone and `./gradlew publishToMavenLocal`.
+**Maven:**
+```xml
+<dependency>
+    <groupId>io.github.thgrcarvalho</groupId>
+    <artifactId>spring-boot-starter-idempotency</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
 
 The starter auto-configures on any `@SpringBootApplication` with Spring Web on the classpath. No `@EnableXxx` annotation needed.
 
