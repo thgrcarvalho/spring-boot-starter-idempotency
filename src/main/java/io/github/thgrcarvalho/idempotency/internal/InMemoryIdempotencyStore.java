@@ -30,4 +30,9 @@ public final class InMemoryIdempotencyStore implements IdempotencyStore {
         // putIfAbsent: first writer wins in the rare concurrent-request case
         store.putIfAbsent(key, new Entry(response, Instant.now().plus(ttl)));
     }
+
+    @Override
+    public long size() {
+        return store.size();
+    }
 }

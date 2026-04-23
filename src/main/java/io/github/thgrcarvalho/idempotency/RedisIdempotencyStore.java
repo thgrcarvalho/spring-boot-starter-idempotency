@@ -33,10 +33,21 @@ public final class RedisIdempotencyStore implements IdempotencyStore {
     private final RedisConnectionFactory connectionFactory;
     private final String keyPrefix;
 
+    /**
+     * Creates a store using the default key prefix {@code "idempotency:"}.
+     *
+     * @param connectionFactory the Redis connection factory to use
+     */
     public RedisIdempotencyStore(RedisConnectionFactory connectionFactory) {
         this(connectionFactory, DEFAULT_KEY_PREFIX);
     }
 
+    /**
+     * Creates a store with a custom key prefix.
+     *
+     * @param connectionFactory the Redis connection factory to use
+     * @param keyPrefix         prefix prepended to every Redis key, e.g. {@code "myapp:idempotency:"}
+     */
     public RedisIdempotencyStore(RedisConnectionFactory connectionFactory, String keyPrefix) {
         this.connectionFactory = connectionFactory;
         this.keyPrefix = keyPrefix;

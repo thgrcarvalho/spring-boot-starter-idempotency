@@ -10,7 +10,13 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -119,5 +125,43 @@ class RedisIdempotencyStoreTest {
         assertNull(store.get(keyNull).orElseThrow().body());
         assertNotNull(store.get(keyEmpty).orElseThrow().body());
         assertEquals(0, store.get(keyEmpty).orElseThrow().body().length);
+    }
+
+    @Test
+    void concurrentPuts_onlyFirstWriterWins() throws Exception {
+        String key = "key-concurrent-" + System.nanoTime();
+        int threads = 20;
+
+        CountDownLatch ready = new CountDownLatch(threads);
+        CountDownLatch go = new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+
+        List<Future<Void>> futures = new ArrayList<>();
+        for (int i = 0; i < threads; i++) {
+            final int threadId = i;
+            futures.add(executor.submit(() -> {
+                CachedResponse response = new CachedResponse(
+                        200, "text/plain",
+                        ("thread-" + threadId).getBytes(StandardCharsets.UTF_8));
+                ready.countDown();
+                go.await();
+                store.put(key, response, Duration.ofSeconds(30));
+                return null;
+            }));
+        }
+
+        ready.await();
+        go.countDown();
+        for (Future<Void> f : futures) f.get();
+        executor.shutdown();
+
+        Optional<CachedResponse> result = store.get(key);
+        assertTrue(result.isPresent(), "exactly one thread should have won");
+        String winnerBody = new String(result.get().body(), StandardCharsets.UTF_8);
+        // All subsequent gets return the same winner — verify consistency
+        for (int i = 0; i < 5; i++) {
+            assertEquals(winnerBody, new String(store.get(key).orElseThrow().body(), StandardCharsets.UTF_8),
+                    "every get must return the same winner's value");
+        }
     }
 }

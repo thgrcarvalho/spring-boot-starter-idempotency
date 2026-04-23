@@ -18,9 +18,25 @@ public final class IdempotencyFilter extends OncePerRequestFilter {
     public static final String IDEMPOTENCY_KEY_HEADER = "Idempotency-Key";
 
     private final IdempotencyStore store;
+    private Runnable onHit;
+    private Runnable onMiss;
 
     public IdempotencyFilter(IdempotencyStore store) {
+        this(store, () -> {}, () -> {});
+    }
+
+    public IdempotencyFilter(IdempotencyStore store, Runnable onHit, Runnable onMiss) {
         this.store = store;
+        this.onHit = onHit;
+        this.onMiss = onMiss;
+    }
+
+    public void setOnHit(Runnable onHit) {
+        this.onHit = onHit;
+    }
+
+    public void setOnMiss(Runnable onMiss) {
+        this.onMiss = onMiss;
     }
 
     @Override
@@ -37,9 +53,12 @@ public final class IdempotencyFilter extends OncePerRequestFilter {
         // Cache hit: return stored response without executing the handler
         Optional<CachedResponse> cached = store.get(key);
         if (cached.isPresent()) {
+            onHit.run();
             writeCached(response, cached.get());
             return;
         }
+
+        onMiss.run();
 
         // Cache miss: wrap the response so we can capture the body after dispatch
         ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper(response);

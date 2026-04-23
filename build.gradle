@@ -31,6 +31,7 @@ dependencies {
     compileOnly 'org.springframework.boot:spring-boot-autoconfigure'
     compileOnly 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.springframework.boot:spring-boot-starter-data-redis'
+    compileOnly 'io.micrometer:micrometer-core'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -43,6 +44,12 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
     environment 'DOCKER_HOST', System.getenv('DOCKER_HOST') ?: 'tcp://localhost:2375'
+}
+
+javadoc {
+    // internal package is an implementation detail — not part of the public API
+    exclude '**/internal/**'
+    options.addStringOption('Xdoclint:all,-missing', '-quiet')
 }
 
 publishing {

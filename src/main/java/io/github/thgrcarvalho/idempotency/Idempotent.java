@@ -37,6 +37,8 @@ public @interface Idempotent {
     /**
      * How long to cache the response. Supported units: {@code d} (days), {@code h} (hours),
      * {@code m} (minutes), {@code s} (seconds). Examples: {@code "24h"}, {@code "30m"}.
+     *
+     * @return the TTL string, defaulting to {@code "24h"}
      */
     String ttl() default "24h";
 }
