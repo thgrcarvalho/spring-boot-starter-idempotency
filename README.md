@@ -1,5 +1,7 @@
 # spring-boot-starter-idempotency
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.thgrcarvalho/spring-boot-starter-idempotency)](https://central.sonatype.com/artifact/io.github.thgrcarvalho/spring-boot-starter-idempotency)
+
 A Spring Boot starter that adds idempotency to any controller method with a single annotation. Requests carrying the same `Idempotency-Key` header return the cached response without re-executing the handler.
 
 ```java
@@ -21,7 +23,7 @@ Non-idempotent payment endpoints are one of the most common sources of duplicate
 **Gradle:**
 ```groovy
 dependencies {
-    implementation 'io.github.thgrcarvalho:spring-boot-starter-idempotency:0.1.0'
+    implementation 'io.github.thgrcarvalho:spring-boot-starter-idempotency:0.2.0'
 }
 ```
 
