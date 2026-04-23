@@ -1,5 +1,7 @@
 plugins {
     id 'java-library'
+    id 'maven-publish'
+    id 'signing'
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -10,6 +12,8 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+    withSourcesJar()
+    withJavadocJar()
 }
 
 repositories {
@@ -38,4 +42,48 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
     environment 'DOCKER_HOST', System.getenv('DOCKER_HOST') ?: 'tcp://localhost:2375'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            pom {
+                name = 'spring-boot-starter-idempotency'
+                description = 'Spring Boot starter that adds idempotency to any controller method with a single @Idempotent annotation. Pluggable storage backend — in-memory or Redis.'
+                url = 'https://github.com/thgrcarvalho/spring-boot-starter-idempotency'
+                licenses {
+                    license {
+                        name = 'Apache License, Version 2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'thgrcarvalho'
+                        name = 'Thiago Rodrigues Carvalho'
+                        email = 'thgrcarvalho@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/thgrcarvalho/spring-boot-starter-idempotency.git'
+                    developerConnection = 'scm:git:ssh://github.com/thgrcarvalho/spring-boot-starter-idempotency.git'
+                    url = 'https://github.com/thgrcarvalho/spring-boot-starter-idempotency'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'staging'
+            url = layout.buildDirectory.dir('staging-deploy')
+        }
+    }
+}
+
+signing {
+    def signingKey = findProperty('signingKey')
+    def signingPassword = findProperty('signingPassword')
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications.mavenJava
 }
